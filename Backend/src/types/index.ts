@@ -1,48 +1,55 @@
-import { Document} from "mongoose";
+import { Document } from "mongoose";
 import { Request } from "express";
 
-export interface User extends Document{
+// ========== USER INTERFACE ==========
+export interface IUser extends Document {
     username: string;
     email: string;
     password: string;
-    createAt: Date;
-    uddateAt: Date;
+    createdAt: Date;  // 👈 Fix: createAt → createdAt
+    updatedAt: Date;  // 👈 Fix: uddateAt → updatedAt
     comparePassword(candidatePassword: string): Promise<boolean>;
-
 }
-export type ContentType = 'tweet' | 'document' | 'video' | 'Link';
 
-export interface Content extends Document {
+// ========== CONTENT INTERFACE ==========
+export type ContentType = 'tweet' | 'document' | 'video' | 'link';  // 👈 Fix: Link → link
+
+export interface IContent extends Document {
     userId: string;
     type: ContentType;
     title: string;
     content?: string;
-    tags?:string[];
-    Link?:string;
-    createAt: Date;
-    uddateAt: Date;
+    link?: string;  // 👈 Fix: Link → link (lowercase)
+    tags?: string[];
+    createdAt: Date;  // 👈 Fix: createAt → createdAt
+    updatedAt: Date;  // 👈 Fix: uddateAt → updatedAt
 }
 
-export interface Link extends Document {
+// ========== LINK INTERFACE ==========
+export interface ILink extends Document {
     hash: string;
     userId: string;
     contentIds: string[];
     expiresAt?: Date;
     createdAt: Date;
     updatedAt: Date;
-    isExpired(): boolean; 
+    isExpired(): boolean;
 }
 
-export interface AuthRequest extends Request{
-    user?: User
+// ========== REQUEST TYPES ==========
+export interface AuthRequest extends Request {
+    user?: IUser;  // 👈 Fix: User → IUser
 }
 
+// ========== JWT PAYLOAD ==========
 export interface JWTPayload {
     id: string;
 }
-export interface ApiResponse <T = any> {
+
+// ========== API RESPONSE ==========
+export interface ApiResponse<T = any> {
     success: boolean;
-    message: string;
+    message?: string;  // 👈 Fix: optional karo
     data?: T;
     count?: number;
 }
