@@ -1,7 +1,7 @@
 import mongoose, {Schema} from "mongoose";
-import { IContent } from "../types";  // 👈 IContent (not Content)
+import { IContent } from "../types";  
 
-const contentSchema = new Schema<IContent>({  // 👈 IContent
+const contentSchema = new Schema<IContent>({  
     userId:{
         type: String,
         required: true,
@@ -12,7 +12,7 @@ const contentSchema = new Schema<IContent>({  // 👈 IContent
         required: true,
         enum: ['tweet', 'document','video','link'],
     },
-    title:{  // 👈 title pehle rakho
+    title:{  
         type: String,
         required: true,
         trim: true,
@@ -21,7 +21,7 @@ const contentSchema = new Schema<IContent>({  // 👈 IContent
         type: String,
         trim: true,
     },
-    link: {  // 👈 Link → link (lowercase)
+    link: {  
         type: String,
         trim: true,
     },
@@ -37,6 +37,6 @@ const contentSchema = new Schema<IContent>({  // 👈 IContent
 contentSchema.index({ userId: 1, type: 1 });
 contentSchema.index({ userId: 1, tags: 1 });
 
-const Content = mongoose.model<IContent>('Content', contentSchema);  // 👈 IContent
+const Content = mongoose.model<IContent>('Content', contentSchema);  
 
 export default Content;
