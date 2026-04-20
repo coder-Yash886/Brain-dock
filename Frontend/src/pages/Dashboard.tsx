@@ -6,15 +6,17 @@ import AddContentModal from '../components/AddContentModal';
 import PreviewModal from '../components/PreviewModal';
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import type { ContentItem } from '../types/content';
+import { API_BASE_URL } from '../config/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [contents, setContents] = useState<any[]>([]);
+  const [contents, setContents] = useState<ContentItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
-  const [previewItem, setPreviewItem] = useState<any>(null);
+  const [previewItem, setPreviewItem] = useState<ContentItem | null>(null);
 
   const uniqueTags = useMemo(() => {
     const tags = new Set<string>();
@@ -29,7 +31,7 @@ const Dashboard = () => {
   const fetchContent = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/content', {
+      const res = await axios.get(`${API_BASE_URL}/content`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setContents(res.data.data);
@@ -39,6 +41,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    // Initial data load on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchContent();
   }, []);
 
@@ -50,12 +54,12 @@ const Dashboard = () => {
   const handleShare = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:5000/api/brain/share', { share: true }, {
+      const res = await axios.post(`${API_BASE_URL}/brain/share`, { share: true }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
         
-        setShareUrl(`http://localhost:5173/share/${res.data.data.hash}`);
+        setShareUrl(`${window.location.origin}/share/${res.data.data.hash}`);
       }
     } catch (error) {
       console.error("Error generating share link", error);
@@ -115,14 +119,14 @@ const Dashboard = () => {
           {visibleContents.map((item) => (
              <Card 
                key={item._id}
-               type={item.type as any}
+               type={item.type}
                title={item.title}
                link={item.link}
                tags={item.tags}
                onClick={() => setPreviewItem(item)}
                onDelete={async () => {
                  const token = localStorage.getItem('token');
-                 await axios.delete(`http://localhost:5000/api/content/${item._id}`, {
+                 await axios.delete(`${API_BASE_URL}/content/${item._id}`, {
                    headers: { Authorization: `Bearer ${token}` }
                  });
                  fetchContent();

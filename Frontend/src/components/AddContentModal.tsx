@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 interface AddContentModalProps {
   open: boolean;
@@ -34,7 +35,7 @@ const AddContentModal = ({ open, onClose, onSuccess }: AddContentModalProps) => 
         tags: tags.split(',').map(t => t.trim()).filter(Boolean)
       };
 
-      const res = await axios.post('http://localhost:5000/api/content', payload, {
+      const res = await axios.post(`${API_BASE_URL}/content`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -45,8 +46,9 @@ const AddContentModal = ({ open, onClose, onSuccess }: AddContentModalProps) => 
         setTags('');
         onSuccess();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to add content');
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message?: string }>;
+      setError(axiosError.response?.data?.message || 'Failed to add content');
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,8 @@
 import { X, ExternalLink, Twitter, Youtube, FileText, Link as LinkIcon } from 'lucide-react';
+import type { ContentItem } from '../types/content';
 
 interface PreviewModalProps {
-  item: any;
+  item: ContentItem | null;
   onClose: () => void;
 }
 

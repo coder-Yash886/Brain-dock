@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Brain, ArrowLeft } from 'lucide-react';
 import Card from '../components/Card';
+import type { ContentItem } from '../types/content';
+import { API_BASE_URL } from '../config/api';
 
 const Share = () => {
   const { hash } = useParams();
   const navigate = useNavigate();
-  const [contents, setContents] = useState<any[]>([]);
+  const [contents, setContents] = useState<ContentItem[]>([]);
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,13 +17,14 @@ const Share = () => {
   useEffect(() => {
     const fetchSharedBrain = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/brain/${hash}`);
+        const res = await axios.get(`${API_BASE_URL}/brain/${hash}`);
         if (res.data.success) {
           setContents(res.data.data.contents);
           setUsername(res.data.data.username);
         }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load shared vault');
+      } catch (err) {
+        const axiosError = err as AxiosError<{ message?: string }>;
+        setError(axiosError.response?.data?.message || 'Failed to load shared vault');
       } finally {
         setLoading(false);
       }
@@ -94,7 +97,7 @@ const Share = () => {
           {contents.map((item) => (
              <Card 
                key={item._id}
-               type={item.type as any}
+               type={item.type}
                title={item.title}
                link={item.link}
                tags={item.tags}

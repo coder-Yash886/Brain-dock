@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { BrainCircuit, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,7 +21,7 @@ const Auth = () => {
       const endpoint = isLogin ? '/signin' : '/signup';
       const payload = isLogin ? { email, password } : { username, email, password };
       
-      const response = await axios.post(`http://localhost:5000/api/auth${endpoint}`, payload);
+      const response = await axios.post(`${API_BASE_URL}/auth${endpoint}`, payload);
       
       if (response.data.success) {
         if (!isLogin) {
@@ -34,8 +35,12 @@ const Auth = () => {
           navigate('/dashboard');
         }
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Something went wrong');
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message?: string }>;
+      setError(
+        axiosError.response?.data?.message ||
+          (axiosError.request ? 'Cannot connect to server. Please try again.' : 'Something went wrong')
+      );
     }
   };
 
