@@ -44,8 +44,24 @@ const Card = ({ type, title, tags, link, onDelete }: CardProps) => {
         <h3 className="text-lg font-semibold text-zinc-200 leading-snug">
           {title}
         </h3>
-        {link && type === 'link' && (
-          <a href={link} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-indigo-400 hover:text-indigo-300 break-all line-clamp-2">
+        
+        {/* Youtube Embed Layout */}
+        {link && type === 'video' && link.includes('youtube.com') && (
+          <div className="mt-4 rounded-lg overflow-hidden border border-zinc-800">
+            <iframe 
+              className="w-full aspect-video" 
+              src={link.replace("watch?v=", "embed/")} 
+              title="YouTube video player" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen>
+            </iframe>
+          </div>
+        )}
+        
+        {/* Generic Link Fallback */}
+        {link && !(type === 'video' && link.includes('youtube.com')) && (
+          <a href={link} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center text-sm text-indigo-400 hover:text-indigo-300 break-all border border-indigo-500/20 bg-indigo-500/5 p-2 rounded-md hover:bg-indigo-500/10 transition-colors">
             {link}
           </a>
         )}
