@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Brain, ArrowRight, Shield, Zap, Share2, Sparkles, Layers, Search, Github, Twitter as TwitterIcon } from 'lucide-react';
+import { Brain, ArrowRight, Shield, Zap, Share2, Sparkles, Layers, Search, Github, Twitter as TwitterIcon, Linkedin } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Landing = () => {
@@ -153,11 +153,14 @@ const Landing = () => {
                 The most elegant way to capture, organize, and share your digital knowledge. Engineered for thinkers.
               </p>
               <div className="flex items-center gap-4">
-                <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors">
+                <a href="https://x.com/YashK47662" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors">
                   <TwitterIcon className="w-4 h-4" />
                 </a>
-                <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors">
+                <a href="https://github.com/coder-Yash886" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors">
                   <Github className="w-4 h-4" />
+                </a>
+                <a href="https://www.linkedin.com/in/yash-kumar-2a7076325/" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors">
+                  <Linkedin className="w-4 h-4" />
                 </a>
               </div>
             </div>
