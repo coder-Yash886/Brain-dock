@@ -1,31 +1,27 @@
 import { Document } from "mongoose";
 import { Request } from "express";
 
-// ========== USER INTERFACE ==========
+
 export interface IUser extends Document {
     username: string;
     email: string;
     password: string;
-    createdAt: Date;  // 👈 Fix: createAt → createdAt
-    updatedAt: Date;  // 👈 Fix: uddateAt → updatedAt
+    createdAt: Date;  
+    updatedAt: Date;  
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
-
-// ========== CONTENT INTERFACE ==========
-export type ContentType = 'tweet' | 'document' | 'video' | 'link';  // 👈 Fix: Link → link
+export type ContentType = 'tweet' | 'document' | 'video' | 'link'; 
 
 export interface IContent extends Document {
     userId: string;
     type: ContentType;
     title: string;
     content?: string;
-    link?: string;  // 👈 Fix: Link → link (lowercase)
+    link?: string;  
     tags?: string[];
-    createdAt: Date;  // 👈 Fix: createAt → createdAt
-    updatedAt: Date;  // 👈 Fix: uddateAt → updatedAt
+    createdAt: Date;  
+    updatedAt: Date;  
 }
-
-// ========== LINK INTERFACE ==========
 export interface ILink extends Document {
     hash: string;
     userId: string;
@@ -36,17 +32,14 @@ export interface ILink extends Document {
     isExpired(): boolean;
 }
 
-// ========== REQUEST TYPES ==========
+
 export interface AuthRequest extends Request {
-    user?: IUser;  // 👈 Fix: User → IUser
+    user?: IUser;  
 }
 
-// ========== JWT PAYLOAD ==========
 export interface JWTPayload {
     id: string;
 }
-
-// ========== API RESPONSE ==========
 export interface ApiResponse<T = any> {
     success: boolean;
     message?: string;  // 👈 Fix: optional karo
