@@ -24,7 +24,7 @@ const linkSchema = new Schema<ILink>({  // 👈 ILink
     timestamps: true,
 });
 
-linkSchema.pre('save', function(next){
+linkSchema.pre('validate', function(next){
     if(!this.hash) {
       this.hash = crypto.randomBytes(8).toString('hex');
     }
