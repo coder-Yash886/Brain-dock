@@ -6,10 +6,10 @@ import { AuthRequest, ApiResponse } from '../types';
 
 const router = express.Router();
 
-// Apply protect middleware to all routes
+
 router.use(protect);
 
-// ========== CREATE CONTENT ==========
+
 router.post('/', [
   body('type').isIn(['tweet', 'document', 'video', 'link']).withMessage('Invalid content type'),
   body('title').notEmpty().withMessage('Title is required'),

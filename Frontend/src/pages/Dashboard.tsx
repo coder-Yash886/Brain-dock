@@ -42,7 +42,7 @@ const Dashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
-        // Assume frontend is on localhost:5173
+        
         setShareUrl(`http://localhost:5173/share/${res.data.data.hash}`);
       }
     } catch (error) {
@@ -66,7 +66,7 @@ const Dashboard = () => {
         onShare={handleShare}
       />
 
-      {/* Main Content Area (Sidebar ke aage) */}
+      
       <div className="flex-1 ml-64 p-8">
         
         {/* Header */}
@@ -112,7 +112,7 @@ const Dashboard = () => {
              />
           ))}
 
-          {/* Fallback Dummy Items if no real content */}
+          
           {contents.length === 0 && (
             <div className="col-span-full p-10 flex text-center justify-center items-center rounded-xl border border-dashed border-zinc-800 text-zinc-500">
               Your mind vault is empty. Click 'Add Knowledge' to store something!

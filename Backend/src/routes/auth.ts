@@ -82,10 +82,10 @@ router.post('/signin', [
 
     const { email, password } = req.body;
 
-    // 👇 FIX: User dhundho database se
+  
     const user = await User.findOne({ email });
 
-    if (!user) {  // 👈 FIX: user check karo (not User)
+    if (!user) {  
       res.status(401).json({
         success: false,
         message: 'Invalid email or password',
@@ -93,7 +93,7 @@ router.post('/signin', [
       return;
     }
 
-    // 👇 FIX: user instance pe call karo
+    
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {

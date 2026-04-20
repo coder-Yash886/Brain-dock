@@ -42,7 +42,7 @@ export interface JWTPayload {
 }
 export interface ApiResponse<T = any> {
     success: boolean;
-    message?: string;  // 👈 Fix: optional karo
+    message?: string;  
     data?: T;
     count?: number;
 }

@@ -24,12 +24,12 @@ const Auth = () => {
       
       if (response.data.success) {
         if (!isLogin) {
-          // Agar Signup hua hai, to successfully login screen par bhej dein
+          
           setIsLogin(true);
           setError('Signup successful! Please Sign In now.');
-          setPassword(''); // For security, password clear kar dete hain
+          setPassword(''); 
         } else {
-          // Agar Login hua hai, to token save karke Dashboard par bhej dein
+          
           localStorage.setItem('token', response.data.data.token);
           navigate('/dashboard');
         }
