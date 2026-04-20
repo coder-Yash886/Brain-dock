@@ -5,10 +5,11 @@ interface CardProps {
   title: string;
   tags?: string[];
   link?: string;
+  onClick?: () => void;
   onDelete?: () => void;
 }
 
-const Card = ({ type, title, tags, link, onDelete }: CardProps) => {
+const Card = ({ type, title, tags, link, onClick, onDelete }: CardProps) => {
   const getIcon = () => {
     switch (type) {
       case 'tweet': return <Twitter className="w-5 h-5 text-blue-400" />;
@@ -19,7 +20,10 @@ const Card = ({ type, title, tags, link, onDelete }: CardProps) => {
   };
 
   return (
-    <div className="group relative break-inside-avoid mb-4 rounded-xl bg-zinc-900 border border-zinc-800 p-5 hover:border-zinc-700 transition-all flex flex-col gap-4 shadow-sm hover:shadow-lg hover:shadow-black/20">
+    <div 
+      onClick={onClick}
+      className={`group relative break-inside-avoid mb-4 rounded-xl bg-zinc-900 border border-zinc-800 p-5 hover:border-zinc-700 transition-all flex flex-col gap-4 shadow-sm hover:shadow-lg hover:shadow-black/20 ${onClick ? 'cursor-pointer' : ''}`}
+    >
       
       {/* Header */}
       <div className="flex justify-between items-start">
@@ -31,12 +35,17 @@ const Card = ({ type, title, tags, link, onDelete }: CardProps) => {
             {type}
           </span>
         </div>
-        <button 
-          onClick={onDelete}
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-500/10 rounded-lg text-zinc-500 hover:text-red-500"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        {onDelete && (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-500/10 rounded-lg text-zinc-500 hover:text-red-500"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -61,7 +70,7 @@ const Card = ({ type, title, tags, link, onDelete }: CardProps) => {
         
         {/* Generic Link Fallback */}
         {link && !(type === 'video' && link.includes('youtube.com')) && (
-          <a href={link} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center text-sm text-indigo-400 hover:text-indigo-300 break-all border border-indigo-500/20 bg-indigo-500/5 p-2 rounded-md hover:bg-indigo-500/10 transition-colors">
+          <a href={link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="mt-3 flex items-center text-sm text-indigo-400 hover:text-indigo-300 break-all border border-indigo-500/20 bg-indigo-500/5 p-2 rounded-md hover:bg-indigo-500/10 transition-colors">
             {link}
           </a>
         )}

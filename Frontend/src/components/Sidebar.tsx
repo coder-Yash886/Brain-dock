@@ -5,9 +5,10 @@ interface SidebarProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
   onShare: () => void;
+  tags?: string[];
 }
 
-const Sidebar = ({ activeFilter, onFilterChange, onShare }: SidebarProps) => {
+const Sidebar = ({ activeFilter, onFilterChange, onShare, tags = [] }: SidebarProps) => {
   return (
     <div className="w-64 fixed left-0 top-0 h-screen bg-zinc-950 border-r border-zinc-800 flex flex-col p-4">
       {/* Brand */}
@@ -24,6 +25,30 @@ const Sidebar = ({ activeFilter, onFilterChange, onShare }: SidebarProps) => {
         <NavItem onClick={() => onFilterChange('document')} icon={<FileText className="w-5 h-5" />} label="Documents" active={activeFilter === 'document'} />
         <NavItem onClick={() => onFilterChange('link')} icon={<Link className="w-5 h-5" />} label="Links" active={activeFilter === 'link'} />
       </nav>
+
+      {/* Tags Section */}
+      {tags.length > 0 && (
+        <div className="mt-8 mb-4">
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3 px-3">
+            Tags
+          </h3>
+          <div className="flex flex-wrap gap-2 px-3">
+            {tags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => onFilterChange(tag)}
+                className={`text-xs px-2.5 py-1.5 rounded-md font-medium transition-colors border ${
+                  activeFilter === tag 
+                    ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' 
+                    : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Share Button (Bottom) */}
       <div className="mt-auto">

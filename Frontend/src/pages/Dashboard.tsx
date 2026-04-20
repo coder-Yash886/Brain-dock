@@ -3,7 +3,8 @@ import { Plus, LogOut, X, Copy, Check } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Card from '../components/Card';
 import AddContentModal from '../components/AddContentModal';
-import { useState, useEffect } from 'react';
+import PreviewModal from '../components/PreviewModal';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 
 const Dashboard = () => {
@@ -13,6 +14,17 @@ const Dashboard = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [previewItem, setPreviewItem] = useState<any>(null);
+
+  const uniqueTags = useMemo(() => {
+    const tags = new Set<string>();
+    contents.forEach(item => {
+      if (item.tags) {
+        item.tags.forEach((t: string) => tags.add(t));
+      }
+    });
+    return Array.from(tags).sort();
+  }, [contents]);
 
   const fetchContent = async () => {
     try {
@@ -56,7 +68,11 @@ const Dashboard = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const visibleContents = contents.filter(c => activeFilter === 'all' || c.type === activeFilter);
+  const visibleContents = contents.filter(c => 
+    activeFilter === 'all' || 
+    c.type === activeFilter || 
+    (c.tags && c.tags.includes(activeFilter))
+  );
 
   return (
     <div className="min-h-screen bg-zinc-950 flex font-sans">
@@ -64,6 +80,7 @@ const Dashboard = () => {
         activeFilter={activeFilter} 
         onFilterChange={setActiveFilter}
         onShare={handleShare}
+        tags={uniqueTags}
       />
 
       
@@ -102,6 +119,7 @@ const Dashboard = () => {
                title={item.title}
                link={item.link}
                tags={item.tags}
+               onClick={() => setPreviewItem(item)}
                onDelete={async () => {
                  const token = localStorage.getItem('token');
                  await axios.delete(`http://localhost:5000/api/content/${item._id}`, {
@@ -129,6 +147,8 @@ const Dashboard = () => {
           fetchContent();
         }}
       />
+
+      <PreviewModal item={previewItem} onClose={() => setPreviewItem(null)} />
 
       {/* Share Brain Overlay Modal */}
       {shareUrl && (
