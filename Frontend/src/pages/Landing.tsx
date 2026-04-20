@@ -147,7 +147,7 @@ const Landing = () => {
             <div className="col-span-2 lg:col-span-2">
               <div className="flex items-center gap-2 mb-6">
                 <Brain className="w-6 h-6 text-indigo-500" />
-                <span className="text-xl font-bold tracking-tight text-white">MindVault</span>
+                <span className="text-xl font-bold tracking-tight text-white">Braindock</span>
               </div>
               <p className="text-zinc-400 text-sm leading-relaxed max-w-xs mb-6">
                 The most elegant way to capture, organize, and share your digital knowledge. Engineered for thinkers.
@@ -194,7 +194,7 @@ const Landing = () => {
 
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-zinc-500 text-sm">
-              © {new Date().getFullYear()} MindVault. All rights reserved.
+
             </p>
             <div className="flex items-center gap-2 text-sm text-zinc-500">
               Made with <Sparkles className="w-4 h-4 text-indigo-500" /> for curious minds
