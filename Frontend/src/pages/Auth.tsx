@@ -11,11 +11,14 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
+    setIsSubmitting(true);
 
     try {
       const endpoint = isLogin ? '/signin' : '/signup';
@@ -41,6 +44,8 @@ const Auth = () => {
         axiosError.response?.data?.message ||
           (axiosError.request ? 'Cannot connect to server. Please try again.' : 'Something went wrong')
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -76,6 +81,7 @@ const Auth = () => {
                 type="text"
                 required
                 value={username}
+                disabled={isSubmitting}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="johndoe"
                 className="rounded-lg bg-zinc-950 border border-zinc-800 p-2.5 text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
@@ -89,6 +95,7 @@ const Auth = () => {
               type="email"
               required
               value={email}
+              disabled={isSubmitting}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               className="rounded-lg bg-zinc-950 border border-zinc-800 p-2.5 text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
@@ -102,12 +109,14 @@ const Auth = () => {
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
+                disabled={isSubmitting}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full rounded-lg bg-zinc-950 border border-zinc-800 p-2.5 pr-10 text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
               />
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-300"
               >
@@ -118,9 +127,10 @@ const Auth = () => {
 
           <button
             type="submit"
-            className="mt-2 w-full rounded-lg bg-indigo-500 py-2.5 font-medium text-white hover:bg-indigo-600 transition-colors"
+            disabled={isSubmitting}
+            className="mt-2 w-full rounded-lg bg-indigo-500 py-2.5 font-medium text-white hover:bg-indigo-600 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isLogin ? 'Sign In' : 'Sign Up'}
+            {isSubmitting ? (isLogin ? 'Signing In...' : 'Signing Up...') : isLogin ? 'Sign In' : 'Sign Up'}
           </button>
         </form>
 
@@ -129,6 +139,7 @@ const Auth = () => {
           <button
             onClick={() => setIsLogin(!isLogin)}
             type="button"
+            disabled={isSubmitting}
             className="text-indigo-400 hover:text-indigo-300 font-medium"
           >
             {isLogin ? 'Sign up' : 'Sign in'}
