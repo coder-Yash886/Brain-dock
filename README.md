@@ -2,7 +2,7 @@
 
 A full-stack **Second Brain** application to save, organize, and share your knowledge — tweets, links, videos, and documents — all in one place.
 
-**Live Demo:** [brain-dock.vercel.app](https://brain-dock.vercel.app) &nbsp;|&nbsp; **Backend API:** [brain-dock-4.onrender.com](https://brain-dock-4.onrender.com)
+**Live Demo:** [brain-dock.vercel.app](https://brain-dock-eosin.vercel.app/) &nbsp;|&nbsp; **Backend API:** [brain-dock-4.onrender.com](https://brain-dock-4.onrender.com)
 
 ---
 
