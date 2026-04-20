@@ -34,9 +34,9 @@ const Landing = () => {
             <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20">
               <Brain className="w-6 h-6 text-indigo-400" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">MindVault</span>
+            <span className="text-xl font-bold tracking-tight text-white">Braindock</span>
           </div>
-          
+
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
             <button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors">Features</button>
             <button onClick={() => scrollToSection('how-it-works')} className="hover:text-white transition-colors">How it works</button>
@@ -44,14 +44,14 @@ const Landing = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/auth')} 
+            <button
+              onClick={() => navigate('/auth')}
               className="text-sm font-medium text-zinc-400 hover:text-white transition-colors hidden sm:block"
             >
               Sign in
             </button>
-            <button 
-              onClick={() => navigate('/auth')} 
+            <button
+              onClick={() => navigate('/auth')}
               className="relative group px-5 py-2.5 rounded-full overflow-hidden text-sm font-medium text-white shadow-[0_0_40px_-10px_rgba(99,102,241,0.4)] transition-all hover:scale-105 active:scale-95"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
@@ -75,7 +75,7 @@ const Landing = () => {
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1] mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
             Your brain's external <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400 bg-300% animate-gradient">
-               hard drive.
+              hard drive.
             </span>
           </h1>
 
@@ -86,8 +86,8 @@ const Landing = () => {
 
           {/* Call to Actions */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-            <button 
-              onClick={() => navigate('/auth')} 
+            <button
+              onClick={() => navigate('/auth')}
               className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-black hover:bg-zinc-200 px-8 py-4 rounded-full text-base font-semibold transition-all hover:scale-105 active:scale-95"
             >
               Start Your Vault
@@ -106,32 +106,32 @@ const Landing = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard 
+            <FeatureCard
               icon={<Layers className="w-6 h-6 text-indigo-400" />}
               title="Organize Anything"
               desc="Save tweets, YouTube videos, long-form articles, and quick text notes. Custom tags make everything easy to filter."
             />
-            <FeatureCard 
+            <FeatureCard
               icon={<Zap className="w-6 h-6 text-yellow-400" />}
               title="Blazing Fast UI"
               desc="No loading spinners. Built on a modern tech stack to ensure your thoughts are saved the millisecond you hit enter."
             />
-            <FeatureCard 
+            <FeatureCard
               icon={<Shield className="w-6 h-6 text-emerald-400" />}
               title="Private by Default"
               desc="Your data is yours. Secure authentication means nobody else can access your vault unless you explicitly share it."
             />
-            <FeatureCard 
+            <FeatureCard
               icon={<Search className="w-6 h-6 text-blue-400" />}
               title="Instant Retrieval"
               desc="Click a tag and instantly see all matched content perfectly arranged in a beautiful, masonry-style grid."
             />
-            <FeatureCard 
+            <FeatureCard
               icon={<Share2 className="w-6 h-6 text-purple-400" />}
               title="Share Your Brain"
               desc="Generate a secure public link. Let others explore your curated collections without signing in."
             />
-            <FeatureCard 
+            <FeatureCard
               icon={<Sparkles className="w-6 h-6 text-pink-400" />}
               title="Distraction Free"
               desc="A dark, immersive full-screen preview mode built so you can actually read and digest your saved content."
