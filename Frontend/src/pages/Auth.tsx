@@ -5,6 +5,28 @@ import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '../config/api';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
+type ApiErrorBody = { message?: string };
+
+const getErrorMessage = (err: unknown): string => {
+  const axiosError = err as AxiosError<ApiErrorBody>;
+
+  if (axiosError.code === 'ECONNABORTED') {
+    return 'Server is taking too long to respond. Please try again in a few seconds.';
+  }
+
+  if (axiosError.response) {
+    return (
+      axiosError.response.data?.message ||
+      `Request failed (${axiosError.response.status}). Please try again.`
+    );
+  }
+
+  if (axiosError.request) {
+    return 'Cannot connect to server. Please check internet or backend URL.';
+  }
+
+  return 'Something went wrong';
+};
 
 const Auth = () => {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -61,11 +83,7 @@ const Auth = () => {
         }
       }
     } catch (err) {
-      const axiosError = err as AxiosError<{ message?: string }>;
-      setError(
-        axiosError.response?.data?.message ||
-          (axiosError.request ? 'Cannot connect to server. Please try again.' : 'Something went wrong')
-      );
+      setError(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -106,11 +124,7 @@ const Auth = () => {
         setConfirmPassword('');
       }
     } catch (err) {
-      const axiosError = err as AxiosError<{ message?: string }>;
-      setError(
-        axiosError.response?.data?.message ||
-          (axiosError.request ? 'Cannot connect to server. Please try again.' : 'Something went wrong')
-      );
+      setError(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
