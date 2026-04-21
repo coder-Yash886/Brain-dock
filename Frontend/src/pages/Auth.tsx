@@ -3,6 +3,7 @@ import { BrainCircuit, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { hasValidSession, markSessionStart } from '../utils/session';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
 type ApiErrorBody = { message?: string } | string;
@@ -57,6 +58,10 @@ const Auth = () => {
   const isForgot = mode === 'forgot';
 
   useEffect(() => {
+    if (hasValidSession()) {
+      navigate('/dashboard', { replace: true });
+    }
+
     const apiOrigin = API_BASE_URL.endsWith('/api')
       ? API_BASE_URL.slice(0, -4)
       : API_BASE_URL;
@@ -80,21 +85,16 @@ const Auth = () => {
       });
 
       if (response.data.success) {
-        if (isSignup) {
-          setMode('login');
-          setError('Signup successful! Please Sign In now.');
-          setPassword('');
-        } else {
-          localStorage.setItem('token', response.data.data.token);
-          localStorage.setItem(
-            'user',
-            JSON.stringify({
-              username: response.data.data.username,
-              email: response.data.data.email,
-            })
-          );
-          navigate('/dashboard', { replace: true });
-        }
+        localStorage.setItem('token', response.data.data.token);
+        localStorage.setItem(
+          'user',
+          JSON.stringify({
+            username: response.data.data.username,
+            email: response.data.data.email,
+          })
+        );
+        markSessionStart();
+        navigate('/dashboard', { replace: true });
       }
     } catch (err) {
       setError(getErrorMessage(err));
