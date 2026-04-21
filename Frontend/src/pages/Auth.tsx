@@ -5,7 +5,7 @@ import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '../config/api';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
-type ApiErrorBody = { message?: string };
+type ApiErrorBody = { message?: string } | string;
 
 const getErrorMessage = (err: unknown): string => {
   const axiosError = err as AxiosError<ApiErrorBody>;
@@ -15,8 +15,22 @@ const getErrorMessage = (err: unknown): string => {
   }
 
   if (axiosError.response) {
+    const requestUrl = axiosError.config?.url ?? 'unknown-endpoint';
+    const body = axiosError.response.data;
+    const responseMessage =
+      typeof body === 'string'
+        ? body
+        : body?.message;
+
+    if (axiosError.response.status === 404) {
+      return (
+        responseMessage ||
+        `Endpoint not found (404): ${requestUrl}. Backend route may be missing or not deployed yet.`
+      );
+    }
+
     return (
-      axiosError.response.data?.message ||
+      responseMessage ||
       `Request failed (${axiosError.response.status}). Please try again.`
     );
   }
