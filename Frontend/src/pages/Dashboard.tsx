@@ -8,6 +8,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import type { ContentItem } from '../types/content';
 import { API_BASE_URL } from '../config/api';
+import { clearSession } from '../utils/session';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -34,10 +35,9 @@ const Dashboard = () => {
   }, [contents]);
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/auth', { replace: true });
-  }, [navigate]);
+    clearSession();
+    window.location.assign('/auth');
+  }, []);
 
   const fetchContent = useCallback(async () => {
     try {

@@ -3,7 +3,7 @@ const TOKEN_KEY = 'token';
 const USER_KEY = 'user';
 const SESSION_START_KEY = 'sessionStartedAt';
 
-const clearSession = () => {
+export const clearSession = () => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(SESSION_START_KEY);
