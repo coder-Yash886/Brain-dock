@@ -1,12 +1,20 @@
 import { useState } from 'react';
 import { BrainCircuit, Eye, EyeOff } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { markSessionStart } from '../utils/session';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
 type ApiErrorBody = { message?: string } | string;
+type AuthSuccessResponse = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    token?: string;
+    username?: string;
+    email?: string;
+  };
+};
 
 const getErrorMessage = (err: unknown): string => {
   const axiosError = err as AxiosError<ApiErrorBody>;
@@ -52,7 +60,6 @@ const Auth = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
   const isLogin = mode === 'login';
   const isSignup = mode === 'signup';
   const isForgot = mode === 'forgot';
@@ -67,22 +74,26 @@ const Auth = () => {
       const endpoint = isLogin ? '/signin' : '/signup';
       const payload = isLogin ? { email, password } : { username, email, password };
 
-      const response = await axios.post(`${API_BASE_URL}/auth${endpoint}`, payload, {
+      const response = await axios.post<AuthSuccessResponse>(`${API_BASE_URL}/auth${endpoint}`, payload, {
         timeout: 15000,
       });
 
-      if (response.data.success) {
-        localStorage.setItem('token', response.data.data.token);
+      const token = response.data?.data?.token;
+      if (token) {
+        localStorage.setItem('token', token);
         localStorage.setItem(
           'user',
           JSON.stringify({
-            username: response.data.data.username,
-            email: response.data.data.email,
+            username: response.data.data?.username ?? '',
+            email: response.data.data?.email ?? email,
           })
         );
         markSessionStart();
-        navigate('/dashboard', { replace: true });
+        window.location.assign('/dashboard');
+        return;
       }
+
+      setError(response.data?.message || 'Login failed. Please try again.');
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
