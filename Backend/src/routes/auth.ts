@@ -123,6 +123,48 @@ router.post('/signin', [
   }
 });
 
+// ========== FORGOT PASSWORD ==========
+router.post('/forgot-password', [
+  body('email').isEmail().withMessage('Please enter a valid email'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
+], async (req: express.Request, res: Response<ApiResponse>) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        message: errors.array()[0].msg,
+      });
+      return;
+    }
+
+    const { email, newPassword } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'No account found with this email',
+      });
+      return;
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password reset successful. Please sign in.',
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during password reset',
+    });
+  }
+});
+
 // ========== GET ME ========== (ONLY ONE!)
 router.get('/me', protect, async (req: AuthRequest, res: Response<ApiResponse>) => {
   try {

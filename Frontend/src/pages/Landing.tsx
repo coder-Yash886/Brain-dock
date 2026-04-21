@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import { Brain, ArrowRight, Shield, Zap, Share2, Sparkles, Layers, Search, Github, Twitter as TwitterIcon, Linkedin } from 'lucide-react';
+import { Brain, ArrowRight, Shield, Zap, Share2, Sparkles, Layers, Search, Github, Twitter as TwitterIcon, Linkedin, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Landing = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,7 +44,14 @@ const Landing = () => {
             <button onClick={() => scrollToSection('faq')} className="hover:text-white transition-colors">FAQ</button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="md:hidden p-2 rounded-lg border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-900"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
             <button
               onClick={() => navigate('/auth')}
               className="text-sm font-medium text-zinc-400 hover:text-white transition-colors hidden sm:block"
@@ -54,12 +62,27 @@ const Landing = () => {
               onClick={() => navigate('/auth')}
               className="relative group px-5 py-2.5 rounded-full overflow-hidden text-sm font-medium text-white shadow-[0_0_40px_-10px_rgba(99,102,241,0.4)] transition-all hover:scale-105 active:scale-95"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
+              <div className="absolute inset-0 bg-linear-to-r from-indigo-500 to-purple-500 rounded-full" />
               <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-white transition-opacity duration-300" />
               <span className="relative z-10">Get Started Free</span>
             </button>
           </div>
         </div>
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-4 mx-6 rounded-xl border border-zinc-800 bg-zinc-900/95 p-4">
+            <div className="flex flex-col gap-3 text-sm font-medium text-zinc-300">
+              <button onClick={() => { scrollToSection('features'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors">Features</button>
+              <button onClick={() => { scrollToSection('how-it-works'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors">How it works</button>
+              <button onClick={() => { scrollToSection('faq'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors">FAQ</button>
+              <button
+                onClick={() => navigate('/auth')}
+                className="mt-2 w-full rounded-lg bg-indigo-500 py-2.5 text-white hover:bg-indigo-600 transition-colors"
+              >
+                Sign in
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -74,7 +97,7 @@ const Landing = () => {
           {/* Headline */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1] mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
             Your brain's external <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400 bg-300% animate-gradient">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-400 via-purple-400 to-indigo-400 bg-300% animate-gradient">
               hard drive.
             </span>
           </h1>

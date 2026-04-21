@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, LogOut, X, Copy, Check } from 'lucide-react';
+import { Plus, LogOut, X, Copy, Check, Menu } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Card from '../components/Card';
 import AddContentModal from '../components/AddContentModal';
 import PreviewModal from '../components/PreviewModal';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import type { ContentItem } from '../types/content';
 import { API_BASE_URL } from '../config/api';
@@ -17,6 +17,11 @@ const Dashboard = () => {
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [previewItem, setPreviewItem] = useState<ContentItem | null>(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [user, setUser] = useState<{ username: string; email: string } | null>(() => {
+    const cachedUser = localStorage.getItem('user');
+    return cachedUser ? JSON.parse(cachedUser) : null;
+  });
 
   const uniqueTags = useMemo(() => {
     const tags = new Set<string>();
@@ -28,9 +33,19 @@ const Dashboard = () => {
     return Array.from(tags).sort();
   }, [contents]);
 
-  const fetchContent = async () => {
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/auth', { replace: true });
+  }, [navigate]);
+
+  const fetchContent = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/auth', { replace: true });
+        return;
+      }
       const res = await axios.get(`${API_BASE_URL}/content`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -38,18 +53,36 @@ const Dashboard = () => {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [navigate]);
+
+  const fetchMe = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data.success) {
+        const nextUser = {
+          username: res.data.data.username,
+          email: res.data.data.email
+        };
+        setUser(nextUser);
+        localStorage.setItem('user', JSON.stringify(nextUser));
+      }
+    } catch (error) {
+      console.error(error);
+      handleLogout();
+    }
+  }, [handleLogout]);
 
   useEffect(() => {
-    // Initial data load on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchMe();
     fetchContent();
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/auth');
-  };
+  }, [fetchMe, fetchContent]);
 
   const handleShare = async () => {
     try {
@@ -85,36 +118,66 @@ const Dashboard = () => {
         onFilterChange={setActiveFilter}
         onShare={handleShare}
         tags={uniqueTags}
+        isOpen={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
       />
 
-      
-      <div className="flex-1 ml-64 p-8">
-        
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <header className="flex justify-between items-center mb-10 pt-2">
-          <h1 className="text-3xl font-bold text-white tracking-tight h-[40px] capitalize">
-            {activeFilter === 'all' ? 'Welcome to your Mind' : `${activeFilter}s`}
-          </h1>
-          <div className="flex items-center gap-4">
+        <header className="mb-6 sm:mb-8 lg:mb-10 pt-2 flex flex-col gap-4 sm:gap-5">
+          <div className="flex justify-between items-center gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                className="lg:hidden p-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg border border-zinc-800"
+                title="Open menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight capitalize">
+                {activeFilter === 'all' ? 'Welcome to your Mind' : `${activeFilter}s`}
+              </h1>
+            </div>
             <button 
               onClick={() => setModalOpen(true)}
-              className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+              className="hidden sm:flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 lg:px-5 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
             >
               <Plus className="w-5 h-5" />
               Add Knowledge
             </button>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <button 
-              onClick={handleLogout} 
-              className="p-2.5 text-zinc-500 hover:text-white hover:bg-zinc-900 rounded-lg transition-colors border border-transparent hover:border-zinc-800"
-              title="Logout"
+              onClick={() => setModalOpen(true)}
+              className="sm:hidden flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
             >
-              <LogOut className="w-5 h-5" />
+              <Plus className="w-5 h-5" />
+              Add Knowledge
             </button>
+            <div className="sm:ml-auto flex items-center justify-between sm:justify-end gap-3 p-3 rounded-xl border border-zinc-800 bg-zinc-900/60">
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {user?.username ?? 'User'}
+                </p>
+                <p className="text-xs text-zinc-400 break-all">
+                  {user?.email ?? 'Loading profile...'}
+                </p>
+              </div>
+              <button 
+                onClick={handleLogout} 
+                className="flex items-center gap-2 p-2.5 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors border border-zinc-700"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="text-sm font-medium">Logout</span>
+              </button>
+            </div>
           </div>
         </header>
 
         {/* Bento Grid layout for cards */}
-        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+        <div className="columns-1 sm:columns-2 xl:columns-3 2xl:columns-4 gap-4">
           
           {visibleContents.map((item) => (
              <Card 
