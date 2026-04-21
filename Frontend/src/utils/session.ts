@@ -19,7 +19,7 @@ export const hasValidSession = (): boolean => {
 
   const startedAtRaw = localStorage.getItem(SESSION_START_KEY);
   if (!startedAtRaw) {
-    markSessionStart();
+  
     return true;
   }
 

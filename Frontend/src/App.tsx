@@ -6,12 +6,14 @@ import Dashboard from './pages/Dashboard';
 import { hasValidSession } from './utils/session';
 
 function App() {
+  const isLoggedIn = hasValidSession();
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={hasValidSession() ? <Navigate to="/dashboard" replace /> : <Landing />} />
-        <Route path="/auth" element={hasValidSession() ? <Navigate to="/dashboard" replace /> : <Auth />} />
-        <Route path="/dashboard" element={hasValidSession() ? <Dashboard /> : <Navigate to="/auth" replace />} />
+        <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Landing />} />
+        <Route path="/auth" element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Auth />} />
+        <Route path="/dashboard" element={isLoggedIn ? <Dashboard /> : <Navigate to="/auth" replace />} />
         <Route path="/share/:hash" element={<Share />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

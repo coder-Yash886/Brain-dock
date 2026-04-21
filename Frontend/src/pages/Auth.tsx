@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BrainCircuit, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '../config/api';
-import { hasValidSession, markSessionStart } from '../utils/session';
+import { markSessionStart } from '../utils/session';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
 type ApiErrorBody = { message?: string } | string;
@@ -57,19 +57,6 @@ const Auth = () => {
   const isSignup = mode === 'signup';
   const isForgot = mode === 'forgot';
 
-  useEffect(() => {
-    if (hasValidSession()) {
-      navigate('/dashboard', { replace: true });
-    }
-
-    const apiOrigin = API_BASE_URL.endsWith('/api')
-      ? API_BASE_URL.slice(0, -4)
-      : API_BASE_URL;
-    axios.get(`${apiOrigin}/health`, { timeout: 45000 }).catch(() => {
-      // Ignore warmup failures; actual requests show full errors.
-    });
-  }, []);
-
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -81,7 +68,7 @@ const Auth = () => {
       const payload = isLogin ? { email, password } : { username, email, password };
 
       const response = await axios.post(`${API_BASE_URL}/auth${endpoint}`, payload, {
-        timeout: 45000,
+        timeout: 15000,
       });
 
       if (response.data.success) {
@@ -127,7 +114,7 @@ const Auth = () => {
           newPassword: password,
         },
         {
-          timeout: 45000,
+          timeout: 15000,
         }
       );
 
