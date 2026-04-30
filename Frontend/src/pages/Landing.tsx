@@ -39,9 +39,9 @@ const Landing = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors">Features</button>
-            <button onClick={() => scrollToSection('how-it-works')} className="hover:text-white transition-colors">How it works</button>
-            <button onClick={() => scrollToSection('faq')} className="hover:text-white transition-colors">FAQ</button>
+            <button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors cursor-pointer">Features</button>
+            <button onClick={() => scrollToSection('how-it-works')} className="hover:text-white transition-colors cursor-pointer">How it works</button>
+            <button onClick={() => scrollToSection('faq')} className="hover:text-white transition-colors cursor-pointer">FAQ</button>
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
@@ -71,9 +71,9 @@ const Landing = () => {
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 mx-6 rounded-xl border border-zinc-800 bg-zinc-900/95 p-4">
             <div className="flex flex-col gap-3 text-sm font-medium text-zinc-300">
-              <button onClick={() => { scrollToSection('features'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors">Features</button>
-              <button onClick={() => { scrollToSection('how-it-works'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors">How it works</button>
-              <button onClick={() => { scrollToSection('faq'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors">FAQ</button>
+              <button onClick={() => { scrollToSection('features'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors cursor-pointer">Features</button>
+              <button onClick={() => { scrollToSection('how-it-works'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors cursor-pointer">How it works</button>
+              <button onClick={() => { scrollToSection('faq'); setMobileMenuOpen(false); }} className="text-left hover:text-white transition-colors cursor-pointer">FAQ</button>
               <button
                 onClick={() => navigate('/auth')}
                 className="mt-2 w-full rounded-lg bg-indigo-500 py-2.5 text-white hover:bg-indigo-600 transition-colors"
