@@ -4,4 +4,16 @@
   body {
     @apply bg-zinc-950 text-zinc-50;
   }
+
+  /* Make all buttons show pointer cursor by default */
+  button {
+    @apply cursor-pointer;
+  }
+
+  /* Also ensure inputs that behave like buttons show pointer */
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    @apply cursor-pointer;
+  }
 }
