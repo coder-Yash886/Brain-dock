@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BrainCircuit, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { markSessionStart } from '../utils/session';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -45,6 +46,8 @@ const Auth = () => {
                     'token',
                     response.data.data.token
                 );
+                // mark session start so App reacts immediately
+                markSessionStart();
                 navigate('/dashboard');
             } else {
                 setError(response.data?.message || "Signup failed");

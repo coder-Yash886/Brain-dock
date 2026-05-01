@@ -7,10 +7,12 @@ export const clearSession = () => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(SESSION_START_KEY);
+  window.dispatchEvent(new Event('authChanged'));
 };
 
 export const markSessionStart = () => {
   localStorage.setItem(SESSION_START_KEY, Date.now().toString());
+  window.dispatchEvent(new Event('authChanged'));
 };
 
 export const hasValidSession = (): boolean => {
@@ -19,7 +21,6 @@ export const hasValidSession = (): boolean => {
 
   const startedAtRaw = localStorage.getItem(SESSION_START_KEY);
   if (!startedAtRaw) {
-  
     return true;
   }
 
