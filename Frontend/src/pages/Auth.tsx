@@ -1,10 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrainCircuit, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { markSessionStart } from '../utils/session';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+
+const loadReCaptchaScript = (siteKey: string) => {
+  return new Promise<void>((resolve, reject) => {
+    if ((window as any).grecaptcha) return resolve();
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load reCAPTCHA script'));
+    document.head.appendChild(script);
+  });
+};
+
+const getRecaptchaToken = async (action = 'login'): Promise<string | null> => {
+  if (!RECAPTCHA_SITE_KEY) return null;
+  await loadReCaptchaScript(RECAPTCHA_SITE_KEY);
+  return new Promise((resolve, reject) => {
+    try {
+      (window as any).grecaptcha.ready(() => {
+        (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, { action }).then((token: string) => {
+          resolve(token);
+        }).catch((err: any) => reject(err));
+      });
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
 
 const Auth = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -15,6 +46,15 @@ const Auth = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+      if (RECAPTCHA_SITE_KEY) {
+        
+        loadReCaptchaScript(RECAPTCHA_SITE_KEY).catch(() => {
+          
+        });
+      }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,9 +68,17 @@ const Auth = () => {
 
             const endpoint = isLogin ? '/signin' : '/signup';
 
+            
+            let recaptchaToken: string | null = null;
+            try {
+              recaptchaToken = await getRecaptchaToken(isLogin ? 'signin' : 'signup');
+            } catch (err) {
+              console.warn('reCAPTCHA execution failed', err);
+            }
+
             const payload = isLogin
-                ? { email, password }
-                : { username, email, password };
+                ? { email, password, recaptchaToken }
+                : { username, email, password, recaptchaToken };
 
             console.log("API:", `${BASE_URL}/auth${endpoint}`); 
 
@@ -46,7 +94,7 @@ const Auth = () => {
                     'token',
                     response.data.data.token
                 );
-                // mark session start so App reacts immediately
+                
                 markSessionStart();
                 navigate('/dashboard');
             } else {

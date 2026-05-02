@@ -1,6 +1,7 @@
 import express, { Response } from "express";
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
+import axios from 'axios';
 import User from '../models/User';
 import { protect } from '../middleware/auth';
 import { AuthRequest, ApiResponse } from '../types';
@@ -11,6 +12,20 @@ const generateToken = (id: string): string => {
   return jwt.sign({ id }, process.env.JWT_SECRET!, {
     expiresIn: '30d',
   });
+};
+
+const verifyRecaptcha = async (token?: string) => {
+  if (!token) return { success: false } as any;
+  try {
+    const secret = process.env.RECAPTCHA_SECRET!;
+    const res = await axios.post('https://www.google.com/recaptcha/api/siteverify', null, {
+      params: { secret, response: token }
+    });
+    return res.data;
+  } catch (err) {
+    console.error('reCAPTCHA verify error', err);
+    return { success: false };
+  }
 };
 
 
@@ -27,6 +42,13 @@ router.post('/signup', [
         message: errors.array()[0].msg,
       });
       return;
+    }
+
+    
+    const recaptchaToken = req.body.recaptchaToken as string | undefined;
+    const rc = await verifyRecaptcha(recaptchaToken);
+    if (!rc.success || (rc.score !== undefined && rc.score < 0.5)) {
+      return res.status(400).json({ success: false, message: 'reCAPTCHA verification failed' });
     }
 
     const { username, email, password } = req.body;
@@ -78,6 +100,13 @@ router.post('/signin', [
         message: errors.array()[0].msg,
       });
       return;
+    }
+
+    
+    const recaptchaToken = req.body.recaptchaToken as string | undefined;
+    const rc = await verifyRecaptcha(recaptchaToken);
+    if (!rc.success || (rc.score !== undefined && rc.score < 0.5)) {
+      return res.status(400).json({ success: false, message: 'reCAPTCHA verification failed' });
     }
 
     const { email, password } = req.body;
