@@ -196,7 +196,7 @@ const Landing = () => {
           </div>
 
           <div className="mt-12 flex items-center justify-center">
-            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="px-5 py-3 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium">Get started — it's free</button>
+            <button onClick={() => navigate('/auth?mode=signup')} className="px-5 py-3 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium">Get started — it's free</button>
           </div>
         </div>
       </section>
