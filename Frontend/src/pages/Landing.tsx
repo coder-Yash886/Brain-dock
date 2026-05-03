@@ -163,6 +163,44 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-24 relative z-10 bg-transparent">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 text-center">
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">How Braindock works</h2>
+          <p className="text-zinc-400 max-w-2xl mx-auto text-lg mb-12">Three simple steps to capture, organize and retrieve your ideas — built for speed and privacy.</p>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-zinc-900/60 border border-zinc-800 p-6 rounded-xl text-left">
+              <div className="w-12 h-12 flex items-center justify-center bg-indigo-500/10 rounded-full mb-4">
+                <Layers className="w-6 h-6 text-indigo-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">1. Capture</h3>
+              <p className="text-zinc-400 text-sm">Save anything quickly — paste a link, add a note, or use the browser extension to clip content with a single click.</p>
+            </div>
+
+            <div className="bg-zinc-900/60 border border-zinc-800 p-6 rounded-xl text-left">
+              <div className="w-12 h-12 flex items-center justify-center bg-indigo-500/10 rounded-full mb-4">
+                <Zap className="w-6 h-6 text-yellow-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">2. Organize</h3>
+              <p className="text-zinc-400 text-sm">Tag and categorize instantly. Use collections, search and filters to keep related ideas together and easy to browse.</p>
+            </div>
+
+            <div className="bg-zinc-900/60 border border-zinc-800 p-6 rounded-xl text-left">
+              <div className="w-12 h-12 flex items-center justify-center bg-indigo-500/10 rounded-full mb-4">
+                <Search className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">3. Retrieve</h3>
+              <p className="text-zinc-400 text-sm">Find what you need instantly with full-text search, tag filters and a beautiful preview mode — your ideas are always at hand.</p>
+            </div>
+          </div>
+
+          <div className="mt-12 flex items-center justify-center">
+            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="px-5 py-3 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium">Get started — it's free</button>
+          </div>
+        </div>
+      </section>
+
       {/* Clean Premium Footer */}
       <footer className="border-t border-white/5 bg-[#09090b] pt-16 pb-8 relative z-10">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
