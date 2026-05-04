@@ -3,7 +3,9 @@ import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import axios from 'axios';
 import User from '../models/User';
+import OTP from '../models/OTP';
 import { protect } from '../middleware/auth';
+import sendEmail from '../utils/sendEmail';
 import { AuthRequest, ApiResponse } from '../types';
 
 const router = express.Router();
@@ -28,11 +30,76 @@ const verifyRecaptcha = async (token?: string) => {
   }
 };
 
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+router.post('/send-otp', [
+  body('email').isEmail().withMessage('Please enter a valid email'),
+  body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
+], async (req: express.Request, res: Response<ApiResponse>) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        message: errors.array()[0].msg,
+      });
+      return;
+    }
+
+    const { email, username } = req.body;
+
+    const userExists = await User.findOne({ $or: [{ email }, { username }] });
+    if (userExists) {
+      res.status(400).json({
+        success: false,
+        message: userExists.email === email ? 'Email already registered' : 'Username already taken',
+      });
+      return;
+    }
+
+    const otp = generateOTP();
+    
+    // Check if an OTP already exists for this email, update it or create new
+    await OTP.findOneAndUpdate(
+      { email },
+      { otp, createdAt: new Date() },
+      { upsert: true, new: true }
+    );
+
+    const message = `Your BrainDock verification code is: ${otp}. It will expire in 5 minutes.`;
+    
+    try {
+      await sendEmail({
+        email,
+        subject: 'BrainDock - Verify your email',
+        message
+      });
+    } catch (sendErr) {
+      console.error('Failed to send OTP email:', sendErr);
+      return res.status(500).json({ success: false, message: 'Failed to send OTP email' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP sent to your email',
+    });
+  } catch (error) {
+    console.error('Send OTP error:', (error as Error).stack || error);
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message || 'Server error while sending OTP',
+    });
+  }
+});
 
 router.post('/signup', [
   body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
   body('email').isEmail().withMessage('Please enter a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('otp').isLength({ min: 6, max: 6 }).withMessage('Invalid OTP'),
+
 ], async (req: express.Request, res: Response<ApiResponse>) => {
   try {
     const errors = validationResult(req);
@@ -51,7 +118,7 @@ router.post('/signup', [
       return res.status(400).json({ success: false, message: 'reCAPTCHA verification failed' });
     }
 
-    const { username, email, password } = req.body;
+    const { username, email, password, otp } = req.body;
 
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
@@ -61,6 +128,18 @@ router.post('/signup', [
       });
       return;
     }
+
+    const validOTP = await OTP.findOne({ email, otp });
+    if (!validOTP) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid or expired OTP',
+      });
+      return;
+    }
+
+    // Delete OTP after successful verification
+    await OTP.deleteOne({ _id: validOTP._id });
 
     const user = await User.create({
       username,

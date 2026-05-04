@@ -43,6 +43,8 @@ const Auth = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [otp, setOtp] = useState('');
+    const [step, setStep] = useState<1 | 2>(1);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
@@ -66,9 +68,6 @@ const Auth = () => {
                 throw new Error("API URL not configured");
             }
 
-            const endpoint = isLogin ? '/signin' : '/signup';
-
-            
             let recaptchaToken: string | null = null;
             try {
               recaptchaToken = await getRecaptchaToken(isLogin ? 'signin' : 'signup');
@@ -76,31 +75,40 @@ const Auth = () => {
               console.warn('reCAPTCHA execution failed', err);
             }
 
-            const payload = isLogin
-                ? { email, password, recaptchaToken }
-                : { username, email, password, recaptchaToken };
-
-            console.log("API:", `${BASE_URL}/auth${endpoint}`); 
-
-            const response = await axios.post(
-                `${BASE_URL}/auth${endpoint}`,
-                payload
-            );
-
-            console.log("RESPONSE:", response.data); 
-
-            if (response.data?.success) {
-                localStorage.setItem(
-                    'token',
-                    response.data.data.token
-                );
-                
-                markSessionStart();
-                navigate('/dashboard');
+            if (isLogin) {
+                const response = await axios.post(`${BASE_URL}/auth/signin`, {
+                    email, password, recaptchaToken
+                });
+                if (response.data?.success) {
+                    localStorage.setItem('token', response.data.data.token);
+                    markSessionStart();
+                    navigate('/dashboard');
+                } else {
+                    setError(response.data?.message || "Signin failed");
+                }
             } else {
-                setError(response.data?.message || "Signup failed");
+                if (step === 1) {
+                    const response = await axios.post(`${BASE_URL}/auth/send-otp`, {
+                        username, email, recaptchaToken
+                    });
+                    if (response.data?.success) {
+                        setStep(2);
+                    } else {
+                        setError(response.data?.message || "Failed to send OTP");
+                    }
+                } else if (step === 2) {
+                    const response = await axios.post(`${BASE_URL}/auth/signup`, {
+                        username, email, password, otp, recaptchaToken
+                    });
+                    if (response.data?.success) {
+                        localStorage.setItem('token', response.data.data.token);
+                        markSessionStart();
+                        navigate('/dashboard');
+                    } else {
+                        setError(response.data?.message || "Signup failed");
+                    }
+                }
             }
-
         } catch (err: any) {
             console.error("FULL ERROR:", err?.response || err);
 
@@ -142,9 +150,32 @@ const Auth = () => {
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-                    {!isLogin && (
+                    {!isLogin && step === 2 ? (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-zinc-300">Username</label>
+                            <label className="text-sm font-medium text-zinc-300">Enter Verification Code</label>
+                            <input
+                                type="text"
+                                placeholder="123456"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                required
+                                maxLength={6}
+                                className="p-2.5 bg-zinc-950 border border-zinc-800 text-white rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all tracking-widest text-center text-lg font-mono"
+                            />
+                            <p className="text-xs text-zinc-500 text-center mt-2">Code sent to {email}</p>
+                            <button
+                                type="button"
+                                onClick={() => setStep(1)}
+                                className="text-xs text-indigo-400 hover:text-indigo-300 mt-2 text-center transition-colors"
+                            >
+                                Change details
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            {!isLogin && (
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-sm font-medium text-zinc-300">Username</label>
                             <input
                                 type="text"
                                 placeholder="johndoe"
@@ -193,6 +224,8 @@ const Auth = () => {
                             </div>
                         )}
                     </div>
+                        </>
+                    )}
 
                     <button 
                         disabled={isLoading}
@@ -204,7 +237,7 @@ const Auth = () => {
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         ) : null}
-                        {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
+                        {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : (!isLogin && step === 1 ? 'Send OTP' : 'Verify & Sign Up'))}
                     </button>
                 </form>
 
@@ -212,7 +245,12 @@ const Auth = () => {
                     {isLogin ? "Don't have an account? " : "Already have an account? "}
                     <button
                         type="button"
-                        onClick={() => setIsLogin(!isLogin)}
+                        onClick={() => {
+                            setIsLogin(!isLogin);
+                            setStep(1);
+                            setError('');
+                            setOtp('');
+                        }}
                         className="text-indigo-400 hover:text-indigo-300 font-medium"
                     >
                         {isLogin ? 'Sign up' : 'Sign in'}
