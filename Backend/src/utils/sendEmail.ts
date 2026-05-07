@@ -1,9 +1,9 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 const sendEmail = async (options: { email: string; subject: string; message: string }) => {
-    
-    if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    
+    const apiKey = process.env.RESEND_API_KEY;
+
+    if (!apiKey) {
         console.log(`\n=== EMAIL NOTIFICATION (Simulated) ===`);
         console.log(`To: ${options.email}`);
         console.log(`Subject: ${options.subject}`);
@@ -12,24 +12,20 @@ const sendEmail = async (options: { email: string; subject: string; message: str
         return;
     }
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
-        secure: process.env.SMTP_SECURE === 'true' || Number(process.env.SMTP_PORT) === 465,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
+    const resend = new Resend(apiKey);
+    const fromAddress = process.env.RESEND_FROM || 'onboarding@resend.dev';
 
-    const mailOptions = {
-        from: `"${process.env.SMTP_FROM_NAME || 'Braindock'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
-        to: options.email,
-        subject: options.subject,
-        text: options.message,
-    };
-
-    await transporter.sendMail(mailOptions);
+    try {
+        await resend.emails.send({
+            from: fromAddress,
+            to: options.email,
+            subject: options.subject,
+            html: `<div style="font-family: Inter, system-ui, -apple-system, sans-serif; font-size:14px; color:#111;">${options.message.replace(/\n/g, '<br/>')}</div>`,
+        });
+    } catch (err) {
+        console.error('Resend send email error:', err);
+        throw err;
+    }
 };
 
 export default sendEmail;
