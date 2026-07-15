@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Hide Google reCAPTCHA badge from UI */
+.grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 @layer base {
   body {
     @apply bg-zinc-950 text-zinc-50;

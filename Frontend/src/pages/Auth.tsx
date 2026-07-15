@@ -6,9 +6,6 @@ import { markSessionStart } from '../utils/session';
 import { API_BASE_URL } from '../config/api';
 
 const RECAPTCHA_SITE_KEY = (import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined)?.trim();
-const isLocalHost =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 type Grecaptcha = {
   ready: (cb: () => void) => void;
@@ -67,38 +64,34 @@ const loadReCaptchaScript = (siteKey: string): Promise<void> => {
 };
 
 const getRecaptchaToken = async (action: string): Promise<string | null> => {
-  // Skip when not configured or on localhost (backend also skips unless RECAPTCHA_ENABLED=true)
-  if (isLocalHost || !RECAPTCHA_SITE_KEY) {
+  if (!RECAPTCHA_SITE_KEY) return null;
+
+  try {
+    await loadReCaptchaScript(RECAPTCHA_SITE_KEY);
+    const grecaptcha = getGrecaptcha();
+    if (!grecaptcha) return null;
+
+    return await new Promise<string>((resolve, reject) => {
+      const timeout = window.setTimeout(() => reject(new Error('reCAPTCHA timed out')), 15000);
+
+      grecaptcha.ready(() => {
+        grecaptcha
+          .execute(RECAPTCHA_SITE_KEY, { action })
+          .then((value) => {
+            window.clearTimeout(timeout);
+            if (!value) reject(new Error('Empty reCAPTCHA token'));
+            else resolve(value);
+          })
+          .catch((err) => {
+            window.clearTimeout(timeout);
+            reject(err);
+          });
+      });
+    });
+  } catch (err) {
+    console.warn('reCAPTCHA token failed', err);
     return null;
   }
-
-  await loadReCaptchaScript(RECAPTCHA_SITE_KEY);
-  const grecaptcha = getGrecaptcha();
-  if (!grecaptcha) {
-    throw new Error('reCAPTCHA failed to initialize');
-  }
-
-  const token = await new Promise<string>((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
-      reject(new Error('reCAPTCHA timed out'));
-    }, 20000);
-
-    grecaptcha.ready(() => {
-      grecaptcha
-        .execute(RECAPTCHA_SITE_KEY, { action })
-        .then((value) => {
-          window.clearTimeout(timeout);
-          if (!value) reject(new Error('Empty reCAPTCHA token'));
-          else resolve(value);
-        })
-        .catch((err) => {
-          window.clearTimeout(timeout);
-          reject(err);
-        });
-    });
-  });
-
-  return token;
 };
 
 const Auth = () => {
@@ -112,7 +105,7 @@ const Auth = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-      if (!isLocalHost && RECAPTCHA_SITE_KEY) {
+      if (RECAPTCHA_SITE_KEY) {
         loadReCaptchaScript(RECAPTCHA_SITE_KEY).catch(console.warn);
       }
     }, []);
@@ -156,7 +149,7 @@ const Auth = () => {
             } else if (err.request) {
                 setError("Cannot reach server (backend down or blocked)");
             } else {
-                setError(err.message || "reCAPTCHA failed");
+                setError(err.message);
             }
         } finally {
             setIsLoading(false);
