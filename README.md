@@ -2,7 +2,7 @@
 
 A full-stack **Second Brain** application to save, organize, and share your knowledge — tweets, links, videos, and documents — all in one place.
 
-**Live Demo:** [brain-dock.vercel.app](https://brain-dock-eosin.vercel.app/) &nbsp;|&nbsp; **Backend API:** [brain-dock-4.onrender.com](https://brain-dock-4.onrender.com)
+**Live Demo:** [brain-dock.vercel.app](https://brain-dock-eosin.vercel.app/) &nbsp;|&nbsp; **Backend API:** [brain-dock-5.onrender.com](https://brain-dock-5.onrender.com/)
 
 ---
 
@@ -152,23 +152,26 @@ Frontend runs on `http://localhost:5173`
 | Build Command | `npm run build` |
 | Output Directory | `dist` |
 | Install Command | `npm install --include=dev` |
-| Env Variable | `VITE_API_URL=https://brain-dock-4.onrender.com/api` |
+| Env Variable | `VITE_API_URL=https://brain-dock-5.onrender.com/api` |
 
 ---
 
 ## 🔐 Environment Variables
 
-### Backend
+### Backend (Render)
 ```env
 PORT=5000
-MONGO_URL=          # MongoDB Atlas connection string
-JWT_SECRET=         # Min 32 character secret key
-NODE_ENV=           # development | production
+MONGO_URL=              # MongoDB Atlas connection string
+JWT_SECRET=             # Min 32 character secret key
+NODE_ENV=production
+RECAPTCHA_ENABLED=false # set true only if using reCAPTCHA
+RECAPTCHA_SECRET=       # optional
 ```
 
-### Frontend
+### Frontend (Vercel)
 ```env
-VITE_API_URL=       # Backend API base URL
+VITE_API_URL=https://brain-dock-5.onrender.com/api
+VITE_RECAPTCHA_SITE_KEY=   # optional
 ```
 
 ---

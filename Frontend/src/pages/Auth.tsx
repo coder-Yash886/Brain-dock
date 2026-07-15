@@ -3,38 +3,102 @@ import { BrainCircuit, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { markSessionStart } from '../utils/session';
+import { API_BASE_URL } from '../config/api';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+const RECAPTCHA_SITE_KEY = (import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined)?.trim();
+const isLocalHost =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-
-const loadReCaptchaScript = (siteKey: string) => {
-  return new Promise<void>((resolve, reject) => {
-    if ((window as any).grecaptcha) return resolve();
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load reCAPTCHA script'));
-    document.head.appendChild(script);
-  });
+type Grecaptcha = {
+  ready: (cb: () => void) => void;
+  execute: (siteKey: string, options: { action: string }) => Promise<string>;
 };
 
-const getRecaptchaToken = async (action = 'login'): Promise<string | null> => {
-  if (!RECAPTCHA_SITE_KEY) return null;
-  await loadReCaptchaScript(RECAPTCHA_SITE_KEY);
-  return new Promise((resolve, reject) => {
-    try {
-      (window as any).grecaptcha.ready(() => {
-        (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, { action }).then((token: string) => {
-          resolve(token);
-        }).catch((err: any) => reject(err));
-      });
-    } catch (err) {
-      reject(err);
+const getGrecaptcha = (): Grecaptcha | null => {
+  const g = (window as Window & { grecaptcha?: Partial<Grecaptcha> }).grecaptcha;
+  if (g && typeof g.ready === 'function' && typeof g.execute === 'function') {
+    return g as Grecaptcha;
+  }
+  return null;
+};
+
+let scriptPromise: Promise<void> | null = null;
+
+const loadReCaptchaScript = (siteKey: string): Promise<void> => {
+  if (getGrecaptcha()) {
+    return Promise.resolve();
+  }
+
+  if (scriptPromise) return scriptPromise;
+
+  scriptPromise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[data-recaptcha="v3"]');
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+      script.async = true;
+      script.defer = true;
+      script.dataset.recaptcha = 'v3';
+      script.onerror = () => {
+        scriptPromise = null;
+        reject(new Error('Failed to load reCAPTCHA script'));
+      };
+      document.head.appendChild(script);
     }
+
+    const started = Date.now();
+    const poll = () => {
+      if (getGrecaptcha()) {
+        resolve();
+        return;
+      }
+      if (Date.now() - started > 20000) {
+        scriptPromise = null;
+        reject(new Error('reCAPTCHA script loaded but grecaptcha never became ready'));
+        return;
+      }
+      window.setTimeout(poll, 100);
+    };
+    poll();
   });
+
+  return scriptPromise;
+};
+
+const getRecaptchaToken = async (action: string): Promise<string | null> => {
+  // Skip when not configured or on localhost (backend also skips unless RECAPTCHA_ENABLED=true)
+  if (isLocalHost || !RECAPTCHA_SITE_KEY) {
+    return null;
+  }
+
+  await loadReCaptchaScript(RECAPTCHA_SITE_KEY);
+  const grecaptcha = getGrecaptcha();
+  if (!grecaptcha) {
+    throw new Error('reCAPTCHA failed to initialize');
+  }
+
+  const token = await new Promise<string>((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject(new Error('reCAPTCHA timed out'));
+    }, 20000);
+
+    grecaptcha.ready(() => {
+      grecaptcha
+        .execute(RECAPTCHA_SITE_KEY, { action })
+        .then((value) => {
+          window.clearTimeout(timeout);
+          if (!value) reject(new Error('Empty reCAPTCHA token'));
+          else resolve(value);
+        })
+        .catch((err) => {
+          window.clearTimeout(timeout);
+          reject(err);
+        });
+    });
+  });
+
+  return token;
 };
 
 const Auth = () => {
@@ -43,18 +107,13 @@ const Auth = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [otp, setOtp] = useState('');
-    const [step, setStep] = useState<1 | 2>(1);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-      if (RECAPTCHA_SITE_KEY) {
-        
-        loadReCaptchaScript(RECAPTCHA_SITE_KEY).catch(() => {
-          
-        });
+      if (!isLocalHost && RECAPTCHA_SITE_KEY) {
+        loadReCaptchaScript(RECAPTCHA_SITE_KEY).catch(console.warn);
       }
     }, []);
 
@@ -64,19 +123,10 @@ const Auth = () => {
         setIsLoading(true);
 
         try {
-            if (!BASE_URL) {
-                throw new Error("API URL not configured");
-            }
-
-            let recaptchaToken: string | null = null;
-            try {
-              recaptchaToken = await getRecaptchaToken(isLogin ? 'signin' : 'signup');
-            } catch (err) {
-              console.warn('reCAPTCHA execution failed', err);
-            }
+            const recaptchaToken = await getRecaptchaToken(isLogin ? 'signin' : 'signup');
 
             if (isLogin) {
-                const response = await axios.post(`${BASE_URL}/auth/signin`, {
+                const response = await axios.post(`${API_BASE_URL}/auth/signin`, {
                     email, password, recaptchaToken
                 });
                 if (response.data?.success) {
@@ -87,26 +137,15 @@ const Auth = () => {
                     setError(response.data?.message || "Signin failed");
                 }
             } else {
-                if (step === 1) {
-                    const response = await axios.post(`${BASE_URL}/auth/send-otp`, {
-                        username, email, recaptchaToken
-                    });
-                    if (response.data?.success) {
-                        setStep(2);
-                    } else {
-                        setError(response.data?.message || "Failed to send OTP");
-                    }
-                } else if (step === 2) {
-                    const response = await axios.post(`${BASE_URL}/auth/signup`, {
-                        username, email, password, otp, recaptchaToken
-                    });
-                    if (response.data?.success) {
-                        localStorage.setItem('token', response.data.data.token);
-                        markSessionStart();
-                        navigate('/dashboard');
-                    } else {
-                        setError(response.data?.message || "Signup failed");
-                    }
+                const response = await axios.post(`${API_BASE_URL}/auth/signup`, {
+                    username, email, password, recaptchaToken
+                });
+                if (response.data?.success) {
+                    localStorage.setItem('token', response.data.data.token);
+                    markSessionStart();
+                    navigate('/dashboard');
+                } else {
+                    setError(response.data?.message || "Signup failed");
                 }
             }
         } catch (err: any) {
@@ -117,7 +156,7 @@ const Auth = () => {
             } else if (err.request) {
                 setError("Cannot reach server (backend down or blocked)");
             } else {
-                setError(err.message);
+                setError(err.message || "reCAPTCHA failed");
             }
         } finally {
             setIsLoading(false);
@@ -149,33 +188,9 @@ const Auth = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
-                    {!isLogin && step === 2 ? (
+                    {!isLogin && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-zinc-300">Enter Verification Code</label>
-                            <input
-                                type="text"
-                                placeholder="123456"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                required
-                                maxLength={6}
-                                className="p-2.5 bg-zinc-950 border border-zinc-800 text-white rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all tracking-widest text-center text-lg font-mono"
-                            />
-                            <p className="text-xs text-zinc-500 text-center mt-2">Code sent to {email}</p>
-                            <button
-                                type="button"
-                                onClick={() => setStep(1)}
-                                className="text-xs text-indigo-400 hover:text-indigo-300 mt-2 text-center transition-colors"
-                            >
-                                Change details
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            {!isLogin && (
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-sm font-medium text-zinc-300">Username</label>
+                            <label className="text-sm font-medium text-zinc-300">Username</label>
                             <input
                                 type="text"
                                 placeholder="johndoe"
@@ -224,8 +239,6 @@ const Auth = () => {
                             </div>
                         )}
                     </div>
-                        </>
-                    )}
 
                     <button 
                         disabled={isLoading}
@@ -237,7 +250,7 @@ const Auth = () => {
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         ) : null}
-                        {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : (!isLogin && step === 1 ? 'Send OTP' : 'Verify & Sign Up'))}
+                        {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
                     </button>
                 </form>
 
@@ -247,9 +260,7 @@ const Auth = () => {
                         type="button"
                         onClick={() => {
                             setIsLogin(!isLogin);
-                            setStep(1);
                             setError('');
-                            setOtp('');
                         }}
                         className="text-indigo-400 hover:text-indigo-300 font-medium"
                     >
