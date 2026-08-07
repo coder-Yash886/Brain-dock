@@ -30,6 +30,7 @@ const verifyRecaptcha = async (token?: string) => {
   }
 };
 
+
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
@@ -60,8 +61,8 @@ router.post('/send-otp', [
     }
 
     const otp = generateOTP();
-    
-    // Check if an OTP already exists for this email, update it or create new
+
+
     await OTP.findOneAndUpdate(
       { email },
       { otp, createdAt: new Date() },
@@ -69,27 +70,22 @@ router.post('/send-otp', [
     );
 
     const message = `Your BrainDock verification code is: ${otp}. It will expire in 5 minutes.`;
-    
-    try {
-      await sendEmail({
-        email,
-        subject: 'BrainDock - Verify your email',
-        message
-      });
-    } catch (sendErr) {
-      console.error('Failed to send OTP email:', sendErr);
-      return res.status(500).json({ success: false, message: 'Failed to send OTP email' });
-    }
+
+    await sendEmail({
+      email,
+      subject: 'BrainDock - Verify your email',
+      message
+    });
 
     res.status(200).json({
       success: true,
       message: 'OTP sent to your email',
     });
   } catch (error) {
-    console.error('Send OTP error:', (error as Error).stack || error);
+    console.error('Send OTP error:', error);
     res.status(500).json({
       success: false,
-      message: (error as Error).message || 'Server error while sending OTP',
+      message: 'Server error while sending OTP',
     });
   }
 });
@@ -111,7 +107,7 @@ router.post('/signup', [
       return;
     }
 
-    
+
     const recaptchaToken = req.body.recaptchaToken as string | undefined;
     const rc = await verifyRecaptcha(recaptchaToken);
     if (!rc.success || (rc.score !== undefined && rc.score < 0.5)) {
@@ -138,7 +134,6 @@ router.post('/signup', [
       return;
     }
 
-    // Delete OTP after successful verification
     await OTP.deleteOne({ _id: validOTP._id });
 
     const user = await User.create({
@@ -181,7 +176,7 @@ router.post('/signin', [
       return;
     }
 
-    
+
     const recaptchaToken = req.body.recaptchaToken as string | undefined;
     const rc = await verifyRecaptcha(recaptchaToken);
     if (!rc.success || (rc.score !== undefined && rc.score < 0.5)) {
