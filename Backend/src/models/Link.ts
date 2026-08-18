@@ -1,8 +1,8 @@
 import mongoose, {Schema} from "mongoose";
 import crypto from 'crypto'
-import { ILink } from '../types'  // 👈 ILink (not Link)
+import { ILink } from '../types'  //
 
-const linkSchema = new Schema<ILink>({  // 👈 ILink
+const linkSchema = new Schema<ILink>({
     hash:{
         type: String,
         required: true,
@@ -36,6 +36,6 @@ linkSchema.methods.isExpired = function(): boolean {
   return new Date() > this.expiresAt;
 };
 
-const Link = mongoose.model<ILink>('Link', linkSchema);  // 👈 ILink
+const Link = mongoose.model<ILink>('Link', linkSchema); 
 
 export default Link;
